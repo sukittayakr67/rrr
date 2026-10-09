@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraction Detective Mission (FDM Digital Kit)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Kanit', 'Sarabun', 'sans-serif'],
+                    },
+                    colors: {
+                        detective: {
+                            base: '#0f172a',
+                            card: '#1e293b',
+                            accent: '#f59e0b',
+                            accentHover: '#d97706',
+                            neonBlue: '#38bdf8',
+                            neonGreen: '#4ade80',
+                            neonRed: '#f87171',
+                            gold: '#fbbf24'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom animations & scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        .glow-blue {
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+        }
+        .glow-gold {
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+        }
+        .glow-green {
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.35);
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(245, 158, 11, 0.4); }
+            50% { border-color: rgba(245, 158, 11, 1); }
+        }
+        .pulse-gold-border {
+            animation: pulse-border 2s infinite;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100 overflow-x-hidden selection:bg-amber-500 selection:text-slate-950">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-4 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400 font-bold text-xl glow-gold">
+                    🔍
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-wide text-amber-400 flex items-center gap-2">
+                        FDM Kit Online <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300">v2.5 Digital</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">ชุดปฏิบัติการนักสืบเศษส่วน: ภารกิจไขคดีรหัสส่วนเท่า</p>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <button id="soundToggleBtn" onclick="toggleSound()" class="p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition" title="เปิด/ปิด เสียง">
+                    🔊 <span class="hidden sm:inline text-xs ml-1" id="soundStatusText">เปิดเสียง</span>
+                </button>
+                <div class="bg-slate-800/80 border border-amber-500/30 rounded-lg px-3 py-1.5 flex items-center space-x-2">
+                    <span class="text-amber-400 text-sm">🏆 ตรานักสืบ:</span>
+                    <span id="badgeCount" class="font-bold text-amber-300">0/4</span>
+                </div>
+                <button onclick="openAiAssistantModal()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-500 hover:to-cyan-500 text-white font-medium text-xs sm:text-sm flex items-center gap-1.5 shadow-md transition">
+                    ✨ ผู้ช่วยครูนวัตกรรม AI
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP WRAPPER -->
+    <div class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT SIDEBAR: Mission Hub & Player Profile -->
+        <aside class="lg:col-span-4 flex flex-col space-y-4">
+            
+            <!-- Player Detective Profile Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs uppercase tracking-wider font-semibold text-amber-400/90">การ์ดประจำตัวนักสืบ</span>
+                    <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">กลุ่มปฏิบัติการ #1</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full bg-slate-800 border-2 border-amber-400 flex items-center justify-center text-2xl shadow">
+                        🕵️‍♂️
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-100 text-base" id="detectiveName">เจ้าหน้าที่สืบสอบเศษส่วน</h3>
+                        <p class="text-xs text-emerald-400 font-medium" id="detectiveRank">ระดับ: นักสืบฝึกหัด (Junior Investigator)</p>
+                    </div>
+                </div>
+                
+                <!-- Badges Collection Preview -->
+                <div class="mt-4 pt-3 border-t border-slate-800/80 grid grid-cols-4 gap-2 text-center">
+                    <div id="badge-1" class="p-2 rounded-xl bg-slate-800/50 border border-slate-800 opacity-40 transition-all cursor-pointer" title="ผู้เชี่ยวชาญการซอยส่วน (Grid Specialist)">
+                        <div class="text-xl">📐</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Grid Master</div>
+                    </div>
+                    <div id="badge-2" class="p-2 rounded-xl bg-slate-800/50 border border-slate-800 opacity-40 transition-all cursor-pointer" title="ผู้ทำลายล้างความเข้าใจผิด (Mythbuster)">
+                        <div class="text-xl">🦊</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Mythbuster</div>
+                    </div>
+                    <div id="badge-3" class="p-2 rounded-xl bg-slate-800/50 border border-slate-800 opacity-40 transition-all cursor-pointer" title="นักตรวจสอบความสมเหตุสมผล (Logic Checker)">
+                        <div class="text-xl">⚖️</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Logic Master</div>
+                    </div>
+                    <div id="badge-4" class="p-2 rounded-xl bg-slate-800/50 border border-slate-800 opacity-40 transition-all cursor-pointer" title="ปรมาจารย์รหัสส่วนเท่า (Master of Denominator)">
+                        <div class="text-xl">🥇</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Master FDM</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mission Selection Hub -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-slate-200 text-base flex items-center gap-2">
+                        📂 แฟ้มคดีภารกิจ (Select Case)
+                    </h2>
+                    <span class="text-xs text-slate-400"> C.P.A Mode </span>
+                </div>
+
+                <!-- Tabs for Level Categories -->
+                <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl mb-4 text-xs font-medium">
+                    <button id="tab-lvl1" onclick="switchCategory('lvl1')" class="py-2 rounded-lg bg-amber-500 text-slate-950 font-bold transition">ระดับ 1 (ง่าย)</button>
+                    <button id="tab-lvl2" onclick="switchCategory('lvl2')" class="py-2 rounded-lg text-slate-400 hover:text-white transition">ระดับ 2 (ปานกลาง)</button>
+                    <button id="tab-error" onclick="switchCategory('error')" class="py-2 rounded-lg text-slate-400 hover:text-white transition">คดีจับผิด (Error)</button>
+                </div>
+
+                <!-- Mission Cards List -->
+                <div id="missionListContainer" class="space-y-2.5 overflow-y-auto max-h-[380px] pr-1">
+                    <!-- Dynamic rendering via JS -->
+                </div>
+
+                <!-- Custom Case Input Panel -->
+                <div class="mt-auto pt-4 border-t border-slate-800">
+                    <button onclick="toggleCustomCaseModal()" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-amber-300 flex items-center justify-center gap-2 transition">
+                        ✏️ สร้างโจทย์คดีปริศนาเอง (Custom Mission)
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT MAIN CONTENT AREA: Interactive Workbench & Scorecard -->
+        <main class="lg:col-span-8 space-y-6">
+
+            <!-- CASE TITLE HEADER BANNER -->
+            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700/80 rounded-2xl p-4 shadow-2xl relative overflow-hidden pulse-gold-border">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span id="caseBadge" class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold">
+                                คดีที่ #101
+                            </span>
+                            <span id="caseCategoryTag" class="text-xs text-sky-400 font-semibold">
+                                การบวกเศษส่วน (Addition)
+                            </span>
+                        </div>
+                        <h2 id="caseTitle" class="text-xl font-bold text-white mt-1">
+                            คดีปริศนา: พื้นที่รวมของ 1/2 กับ 1/3
+                        </h2>
+                    </div>
+
+                    <!-- Abstract Problem Display -->
+                    <div class="bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-2 flex items-center justify-center space-x-3 text-lg font-bold">
+                        <span id="num1Display" class="text-amber-400">1/2</span>
+                        <span id="opDisplay" class="text-slate-400">+</span>
+                        <span id="num2Display" class="text-sky-400">1/3</span>
+                        <span class="text-slate-400">=</span>
+                        <span id="targetDisplay" class="text-emerald-400 border-b-2 border-emerald-400 px-1">?</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 1: CONCRETE & PICTORIAL INTERACTIVE WORKBENCH -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-6">
+                
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/40 font-bold text-xs flex items-center justify-center">1</span>
+                        <h3 class="font-bold text-slate-100 text-sm sm:text-base">
+                            บอร์ดฐานสืบสวนรูปธรรม & ตารางซอยส่วน (Concrete & Pictorial Baseboard)
+                        </h3>
+                    </div>
+                    <span class="text-xs text-slate-400 hidden sm:inline">ลาก/เลือกตาราง Overlay เพื่อปรับฐานส่วนให้เท่ากัน</span>
+                </div>
+
+                <!-- VISUAL FRACTION TILE SIMULATION AREA -->
+                <div class="space-y-5 bg-slate-950 p-4 sm:p-6 rounded-xl border border-slate-800 shadow-inner">
+                    
+                    <!-- Tile 1 Visual Row -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-amber-400 flex items-center gap-1.5">
+                                🟥 แถบที่ 1: <span id="label-fraction-1">1/2</span>
+                            </span>
+                            <span id="sub-label-1" class="text-slate-400 text-[11px]">สถานะ: ยังไม่ได้ซอยตาราง</span>
+                        </div>
+                        <div class="relative w-full h-12 bg-slate-900 border-2 border-amber-500/40 rounded-xl overflow-hidden shadow">
+                            <!-- Concrete Fraction Bar -->
+                            <div id="bar-fill-1" class="h-full bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 relative flex items-center justify-center font-bold text-slate-950 text-xs sm:text-sm" style="width: 50%;">
+                                <span id="bar-text-1">1/2</span>
+                            </div>
+                            <!-- Grid Overlay Line Layer -->
+                            <div id="grid-overlay-1" class="absolute inset-0 pointer-events-none flex">
+                                <!-- Dynamic Grid Lines JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tile 2 Visual Row -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-sky-400 flex items-center gap-1.5">
+                                🟦 แถบที่ 2: <span id="label-fraction-2">1/3</span>
+                            </span>
+                            <span id="sub-label-2" class="text-slate-400 text-[11px]">สถานะ: ยังไม่ได้ซอยตาราง</span>
+                        </div>
+                        <div class="relative w-full h-12 bg-slate-900 border-2 border-sky-500/40 rounded-xl overflow-hidden shadow">
+                            <!-- Concrete Fraction Bar -->
+                            <div id="bar-fill-2" class="h-full bg-gradient-to-r from-sky-500 to-cyan-600 transition-all duration-300 relative flex items-center justify-center font-bold text-slate-950 text-xs sm:text-sm" style="width: 33.333%;">
+                                <span id="bar-text-2">1/3</span>
+                            </div>
+                            <!-- Grid Overlay Line Layer -->
+                            <div id="grid-overlay-2" class="absolute inset-0 pointer-events-none flex">
+                                <!-- Dynamic Grid Lines JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Combined Result Visual Row -->
+                    <div class="space-y-1.5 pt-2 border-t border-slate-800">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+                                🟩 แถบพื้นที่รวมผลลัพธ์ (Combined Result):
+                            </span>
+                            <span id="combinedStatus" class="text-amber-400 text-[11px] font-semibold">⚠️ ขอบความยาวชิ้นส่วนยังไม่เท่ากัน</span>
+                        </div>
+                        <div class="relative w-full h-12 bg-slate-900 border-2 border-slate-700 rounded-xl overflow-hidden shadow">
+                            <!-- Combined Result Bar -->
+                            <div id="bar-fill-combined" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300 relative flex items-center justify-center font-bold text-slate-950 text-xs sm:text-sm" style="width: 83.333%;">
+                                <span id="bar-text-combined">ผลรวมสเกล</span>
+                            </div>
+                            <!-- Grid Overlay Line Layer for Combined -->
+                            <div id="grid-overlay-combined" class="absolute inset-0 pointer-events-none flex">
+                                <!-- Dynamic Grid Lines JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- GRID OVERLAY SELECTOR TOOLBAR -->
+                <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <label class="text-xs font-bold text-amber-300 flex items-center gap-1">
+                            📐 เลือกแผ่นตารางซอยส่วน (Grid Overlay Selector):
+                        </label>
+                        <span class="text-xs text-slate-400">เลือกจำนวนช่องตารางเพื่อหา "ฐานส่วนเท่า"</span>
+                    </div>
+
+                    <!-- Grid Choice Quick Buttons -->
+                    <div class="flex flex-wrap gap-2" id="gridChoicesContainer">
+                        <!-- Buttons rendered via JS (2, 3, 4, 5, 6, 8, 10, 12, 15, 20) -->
+                    </div>
+
+                    <!-- Feedback message box -->
+                    <div id="gridFeedbackBox" class="text-xs p-3 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between">
+                        <span id="gridFeedbackText" class="text-slate-300">
+                            💡 คำแนะนำ: ลองกดเลือกแผ่นตารางซอยส่วนด้านบน เพื่อดูว่าตารางกี่ช่องที่ลงตัวกับทั้งสองแถบพอดี
+                        </span>
+                        <span id="commonMatchBadge" class="hidden px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold text-[11px]">
+                            ✓ พบฐานส่วนเท่าที่สมบูรณ์!
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- STEP 2: ABSTRACT SCORECARD & EQUATION FORMULATION -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-5">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold text-xs flex items-center justify-center">2</span>
+                        <h3 class="font-bold text-slate-100 text-sm sm:text-base">
+                            แฟ้มบันทึกคดีสรุปสมการ (Detective Abstract Scorecard)
+                        </h3>
+                    </div>
+                    <span class="text-xs text-emerald-400 font-semibold">ขั้นตอนแปลงภาพสู่สัญลักษณ์</span>
+                </div>
+
+                <!-- Equation Interactive Form -->
+                <div class="bg-slate-950 p-4 sm:p-6 rounded-xl border border-slate-800 space-y-6">
+                    
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        เมื่อคุณซอยแผ่นตารางจนได้ชิ้นส่วนขนาดเท่ากันแล้ว จงบันทึกกระบวนการเปลี่ยนเศษส่วนที่เท่ากันเพื่อหาผลลัพธ์ขั้นสุดท้าย:
+                    </p>
+
+                    <!-- Fraction Conversion Inputs -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        
+                        <!-- Fraction 1 Conversion Box -->
+                        <div class="bg-slate-900/90 p-4 rounded-xl border border-amber-500/30 space-y-3">
+                            <div class="text-xs font-bold text-amber-400">แถบที่ 1: แปลงเป็นเศษส่วนเท่ากัน</div>
+                            <div class="flex items-center space-x-2 text-sm font-bold">
+                                <span id="sc-frac1-orig" class="text-amber-300">1/2</span>
+                                <span>=</span>
+                                <div class="flex flex-col items-center">
+                                    <input type="number" id="sc-frac1-num" class="w-12 h-8 text-center bg-slate-950 border border-slate-700 rounded text-amber-400 font-bold text-sm focus:border-amber-400 focus:outline-none" placeholder="เศษ">
+                                    <div class="w-12 h-0.5 bg-slate-600 my-1"></div>
+                                    <input type="number" id="sc-frac1-den" class="w-12 h-8 text-center bg-slate-950 border border-slate-700 rounded text-amber-400 font-bold text-sm focus:border-amber-400 focus:outline-none" placeholder="ส่วน">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fraction 2 Conversion Box -->
+                        <div class="bg-slate-900/90 p-4 rounded-xl border border-sky-500/30 space-y-3">
+                            <div class="text-xs font-bold text-sky-400">แถบที่ 2: แปลงเป็นเศษส่วนเท่ากัน</div>
+                            <div class="flex items-center space-x-2 text-sm font-bold">
+                                <span id="sc-frac2-orig" class="text-sky-300">1/3</span>
+                                <span>=</span>
+                                <div class="flex flex-col items-center">
+                                    <input type="number" id="sc-frac2-num" class="w-12 h-8 text-center bg-slate-950 border border-slate-700 rounded text-sky-400 font-bold text-sm focus:border-sky-400 focus:outline-none" placeholder="เศษ">
+                                    <div class="w-12 h-0.5 bg-slate-600 my-1"></div>
+                                    <input type="number" id="sc-frac2-den" class="w-12 h-8 text-center bg-slate-950 border border-slate-700 rounded text-sky-400 font-bold text-sm focus:border-sky-400 focus:outline-none" placeholder="ส่วน">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Final Answer Equation Box -->
+                    <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="space-y-1 text-center sm:text-left">
+                            <div class="text-xs font-bold text-emerald-400">คำตอบรวมขั้นสุดท้าย (Final Solution):</div>
+                            <div class="text-xs text-slate-400">นับจำนวนชิ้นส่วนทั้งหมดหลังจากฐานส่วนเท่ากันแล้ว</div>
+                        </div>
+
+                        <div class="flex items-center space-x-3 font-bold text-lg">
+                            <div class="flex flex-col items-center">
+                                <input type="number" id="sc-final-num" class="w-16 h-10 text-center bg-slate-950 border-2 border-emerald-500 rounded-lg text-emerald-300 font-bold text-base focus:outline-none" placeholder="ตัวเศษ">
+                                <div class="w-16 h-0.5 bg-emerald-500 my-1"></div>
+                                <input type="number" id="sc-final-den" class="w-16 h-10 text-center bg-slate-950 border-2 border-emerald-500 rounded-lg text-emerald-300 font-bold text-base focus:outline-none" placeholder="ตัวส่วน">
+                            </div>
+
+                            <button onclick="submitScorecard()" class="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg hover:shadow-amber-500/20 transition transform active:scale-95">
+                                ⚖️ ส่งรายงานปิดคดี
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Reasonableness Check Quiz -->
+                    <div class="pt-3 border-t border-slate-800 space-y-2">
+                        <label class="text-xs font-bold text-slate-300 block">
+                            🔍 การตรวจสอบความสมเหตุสมผล (Reasonableness Check):
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                            <button onclick="selectReasoning('less_half')" id="reason-btn-less_half" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition text-left">
+                                ( ) น้อยกว่า 1/2
+                            </button>
+                            <button onclick="selectReasoning('almost_one')" id="reason-btn-almost_one" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition text-left">
+                                ( ) เกือบถึง 1 เต็มแผ่น
+                            </button>
+                            <button onclick="selectReasoning('more_one')" id="reason-btn-more_one" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition text-left">
+                                ( ) มากกว่า 1 เต็มแผ่น
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- CUSTOM MISSION MODAL -->
+    <div id="customCaseModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+            <button onclick="toggleCustomCaseModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
+            
+            <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+                ✏️ สร้างโจทย์คดีเศษส่วน (Custom Mission)
+            </h3>
+            <p class="text-xs text-slate-300">
+                คุณครูหรือนักเรียนสามารถกำหนดตัวเลขเศษส่วนเพื่อนำมาทดลองปฏิบัติต่างๆ ได้:
+            </p>
+
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Frac 1 Input -->
+                <div class="space-y-2 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span class="text-xs font-bold text-amber-400">เศษส่วนที่ 1:</span>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="cust-num1" value="1" min="1" max="12" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-center text-sm font-bold text-amber-400">
+                        <span>/</span>
+                        <input type="number" id="cust-den1" value="4" min="2" max="20" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-center text-sm font-bold text-amber-400">
+                    </div>
+                </div>
+
+                <!-- Frac 2 Input -->
+                <div class="space-y-2 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span class="text-xs font-bold text-sky-400">เศษส่วนที่ 2:</span>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="cust-num2" value="1" min="1" max="12" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-center text-sm font-bold text-sky-400">
+                        <span>/</span>
+                        <input type="number" id="cust-den2" value="6" min="2" max="20" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-center text-sm font-bold text-sky-400">
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-300">เครื่องหมายปฏิบัติการ:</label>
+                <select id="cust-op" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-sm font-bold text-white">
+                    <option value="+">การบวก (+)</option>
+                    <option value="-">การลบ (-)</option>
+                </select>
+            </div>
+
+            <button onclick="applyCustomCase()" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-lg transition">
+                🚀 เปิดคดีภารกิจที่กำหนดเอง
+            </button>
+        </div>
+    </div>
+
+    <!-- AI DETECTIVE ASSISTANT MODAL (Gemini API Integration) -->
+    <div id="aiAssistantModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl relative flex flex-col max-h-[85vh]">
+            <button onclick="closeAiAssistantModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
+
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-xl shadow">
+                    🤖
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-sky-400">ผู้ช่วยครูนวัตกรรม AI (Inspector Math)</h3>
+                    <p class="text-xs text-slate-400">ปรึกษาการสอน สกัดคำใบ้ หรือขอคำอธิบายเชิงมโนทัศน์ (Gemini 3 Flash)</p>
+                </div>
+            </div>
+
+            <!-- Chat Container -->
+            <div id="aiChatBox" class="flex-1 bg-slate-950 rounded-xl p-4 border border-slate-800 overflow-y-auto space-y-3 min-h-[220px] text-xs leading-relaxed">
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-slate-300">
+                    <span class="font-bold text-sky-400">🤖 Inspector Math:</span> สวัสดีครับนักสืบ! มีข้อสงสัยเรื่องการซอยตารางส่วนเท่า หรืออยากขอคำใบ้สำหรับคดีปัจจุบัน ถามผมได้เลยครับ!
+                </div>
+            </div>
+
+            <!-- Chat Input Controls -->
+            <div class="flex items-center space-x-2 pt-2 border-t border-slate-800">
+                <input type="text" id="aiInputPrompt" placeholder="ถามคำถาม เช่น ขอใบ้คดีนี้หน่อย / ทำไม 1/2 ถึงเท่ากับ 3/6?" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-400">
+                <button onclick="sendAiPrompt()" id="aiSendBtn" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition flex items-center gap-1">
+                    ส่ง 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUCCESS NOTIFICATION TOAST -->
+    <div id="toastNotification" class="fixed bottom-6 right-6 z-50 hidden transition-all transform translate-y-4">
+        <div id="toastContent" class="bg-slate-900 border-2 border-emerald-500 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3">
+            <span class="text-2xl" id="toastIcon">🎉</span>
+            <div>
+                <h4 class="font-bold text-sm text-emerald-400" id="toastTitle">ยินดีด้วย!</h4>
+                <p class="text-xs text-slate-300" id="toastMessage">คุณไขคดีสำเร็จแล้ว</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================================================
+           STATE MANAGEMENT & DATA STRUCTURES
+           ========================================================================== */
+        
+        // Sound state
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        // Current Active Mission State
+        let currentMission = {
+            id: '101',
+            category: 'lvl1',
+            title: 'คดีที่ #101: พื้นที่รวมของ 1/2 + 1/3',
+            op: '+',
+            num1: 1, den1: 2,
+            num2: 1, den2: 3,
+            targetNum: 5, targetDen: 6,
+            reasoning: 'almost_one'
+        };
+
+        let selectedGridOverlay = 1; // 1 means no grid subdivision
+        let selectedReasoningChoice = null;
+        let unlockedBadges = new Set();
+
+        // Preset Missions Database
+        const missionsData = {
+            lvl1: [
+                { id: '101', title: 'คดี #101: พื้นที่รวม 1/2 + 1/4', num1: 1, den1: 2, num2: 1, den2: 4, op: '+', targetNum: 3, targetDen: 4, reasoning: 'almost_one' },
+                { id: '102', title: 'คดี #102: การหักออก 1/2 - 1/4', num1: 1, den1: 2, num2: 1, den2: 4, op: '-', targetNum: 1, targetDen: 4, reasoning: 'less_half' },
+                { id: '103', title: 'คดี #103: พื้นที่รวม 1/3 + 1/6', num1: 1, den1: 3, num2: 1, den2: 6, op: '+', targetNum: 1, targetDen: 2, reasoning: 'less_half' }
+            ],
+            lvl2: [
+                { id: '201', title: 'คดี #201: พื้นที่รวม 1/2 + 1/3', num1: 1, den1: 2, num2: 1, den2: 3, op: '+', targetNum: 5, targetDen: 6, reasoning: 'almost_one' },
+                { id: '202', title: 'คดี #202: การลบเศษส่วน 2/3 - 1/2', num1: 2, den1: 3, num2: 1, den2: 2, op: '-', targetNum: 1, targetDen: 6, reasoning: 'less_half' },
+                { id: '203', title: 'คดี #203: ภารกิจท้าทาย 3/4 - 1/6', num1: 3, den1: 4, num2: 1, den2: 6, op: '-', targetNum: 7, targetDen: 12, reasoning: 'almost_one' }
+            ],
+            error: [
+                { id: 'E01', title: '🦊 คดี Shadow Fox: 1/2 + 1/3 = 2/5 (จับผิดคนร้าย)', num1: 1, den1: 2, num2: 1, den2: 3, op: '+', targetNum: 5, targetDen: 6, reasoning: 'almost_one', errorNote: 'คนร้ายแอบเอาเศษบวกเศษ ส่วนบวกส่วน! จงพิสูจน์ว่า 2/5 เล็กกว่า 1/2 เสียอีก!' },
+                { id: 'E02', title: '🦊 คดีคนร้ายลืมคูณเศษ: 1/2 + 1/4 = 2/4', num1: 1, den1: 2, num2: 1, den2: 4, op: '+', targetNum: 3, targetDen: 4, reasoning: 'almost_one', errorNote: 'คนร้ายขยายส่วนเป็น 4 แต่ลืมคูณตัวเศษ! ส่องดูตารางเพื่อหาคำตอบที่ถูก!' }
+            ]
+        };
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(400, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'match') {
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'win') {
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.12);
+                    osc.frequency.setValueAtTime(783.99, now + 0.24); // G5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } else if (type === 'error') {
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(180, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch (e) {
+                console.log('Audio playback error:', e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundStatusText').innerText = soundEnabled ? 'เปิดเสียง' : 'ปิดเสียง';
+            document.getElementById('soundToggleBtn').classList.toggle('text-amber-400', soundEnabled);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderGridChoiceButtons();
+            renderMissionsList('lvl1');
+            loadMission(missionsData.lvl1[0]);
+        });
+
+        function switchCategory(cat) {
+            playSound('click');
+            ['lvl1', 'lvl2', 'error'].forEach(c => {
+                const btn = document.getElementById(`tab-${c}`);
+                if (c === cat) {
+                    btn.className = 'py-2 rounded-lg bg-amber-500 text-slate-950 font-bold transition';
+                } else {
+                    btn.className = 'py-2 rounded-lg text-slate-400 hover:text-white transition';
+                }
+            });
+            renderMissionsList(cat);
+        }
+
+        function renderMissionsList(cat) {
+            const container = document.getElementById('missionListContainer');
+            container.innerHTML = '';
+
+            const list = missionsData[cat] || [];
+            list.forEach(m => {
+                const card = document.createElement('div');
+                const isActive = currentMission.id === m.id;
+                card.className = `p-3 rounded-xl border transition cursor-pointer flex items-center justify-between ${
+                    isActive 
+                    ? 'bg-slate-800 border-amber-400 text-amber-300 shadow-md' 
+                    : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800/60'
+                }`;
+                card.onclick = () => {
+                    playSound('click');
+                    loadMission(m);
+                    renderMissionsList(cat);
+                };
+
+                card.innerHTML = `
+                    <div class="space-y-0.5">
+                        <div class="font-bold text-xs">${m.title}</div>
+                        <div class="text-[11px] text-slate-400">
+                            โจทย์: ${m.num1}/${m.den1} ${m.op} ${m.num2}/${m.den2}
+                        </div>
+                    </div>
+                    <span class="text-xs">➡️</span>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function loadMission(m) {
+            currentMission = m;
+            selectedGridOverlay = 1;
+            selectedReasoningChoice = null;
+
+            // Reset Reasoning Button Styles
+            ['less_half', 'almost_one', 'more_one'].forEach(r => {
+                const b = document.getElementById(`reason-btn-${r}`);
+                if (b) b.className = 'p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition text-left';
+            });
+
+            // Update Header Display
+            document.getElementById('caseBadge').innerText = `คดีที่ #${m.id}`;
+            document.getElementById('caseTitle').innerText = m.title;
+            document.getElementById('num1Display').innerText = `${m.num1}/${m.den1}`;
+            document.getElementById('opDisplay').innerText = m.op;
+            document.getElementById('num2Display').innerText = `${m.num2}/${m.den2}`;
+
+            document.getElementById('label-fraction-1').innerText = `${m.num1}/${m.den1}`;
+            document.getElementById('label-fraction-2').innerText = `${m.num2}/${m.den2}`;
+            document.getElementById('sc-frac1-orig').innerText = `${m.num1}/${m.den1}`;
+            document.getElementById('sc-frac2-orig').innerText = `${m.num2}/${m.den2}`;
+
+            // Reset Input Fields
+            document.getElementById('sc-frac1-num').value = '';
+            document.getElementById('sc-frac1-den').value = '';
+            document.getElementById('sc-frac2-num').value = '';
+            document.getElementById('sc-frac2-den').value = '';
+            document.getElementById('sc-final-num').value = '';
+            document.getElementById('sc-final-den').value = '';
+
+            updateVisualBars();
+        }
+
+        function renderGridChoiceButtons() {
+            const container = document.getElementById('gridChoicesContainer');
+            container.innerHTML = '';
+
+            const grids = [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20];
+            grids.forEach(g => {
+                const btn = document.createElement('button');
+                btn.id = `grid-btn-${g}`;
+                btn.className = 'px-3 py-1.5 rounded-lg border text-xs font-bold transition shadow-sm bg-slate-900 border-slate-700 text-slate-300 hover:border-amber-400';
+                btn.innerText = g === 1 ? 'ไม่มีตาราง (1)' : `${g} ช่อง`;
+                btn.onclick = () => selectGridOverlay(g);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectGridOverlay(gridCount) {
+            playSound('click');
+            selectedGridOverlay = gridCount;
+
+            // Highlight Active Button
+            [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20].forEach(g => {
+                const btn = document.getElementById(`grid-btn-${g}`);
+                if (btn) {
+                    if (g === gridCount) {
+                        btn.className = 'px-3 py-1.5 rounded-lg border text-xs font-bold transition shadow-sm bg-amber-500 border-amber-400 text-slate-950 glow-gold';
+                    } else {
+                        btn.className = 'px-3 py-1.5 rounded-lg border text-xs font-bold transition shadow-sm bg-slate-900 border-slate-700 text-slate-300 hover:border-amber-400';
+                    }
+                }
+            });
+
+            updateVisualBars();
+        }
+
+        function updateVisualBars() {
+            const m = currentMission;
+
+            // Percentage Widths
+            const val1 = m.num1 / m.den1;
+            const val2 = m.num2 / m.den2;
+            const combinedVal = m.op === '+' ? (val1 + val2) : Math.max(0, val1 - val2);
+
+            document.getElementById('bar-fill-1').style.width = `${val1 * 100}%`;
+            document.getElementById('bar-fill-2').style.width = `${val2 * 100}%`;
+            document.getElementById('bar-fill-combined').style.width = `${combinedVal * 100}%`;
+
+            // Render Grid Lines for Grid Overlay
+            renderGridLines('grid-overlay-1', selectedGridOverlay);
+            renderGridLines('grid-overlay-2', selectedGridOverlay);
+            renderGridLines('grid-overlay-combined', selectedGridOverlay);
+
+            // Check if selected grid cleanly subdivides both denominators
+            const isDen1Clean = (selectedGridOverlay % m.den1 === 0);
+            const isDen2Clean = (selectedGridOverlay % m.den2 === 0);
+            const isMatch = isDen1Clean && isDen2Clean && selectedGridOverlay > 1;
+
+            const feedbackText = document.getElementById('gridFeedbackText');
+            const matchBadge = document.getElementById('commonMatchBadge');
+            const subLabel1 = document.getElementById('sub-label-1');
+            const subLabel2 = document.getElementById('sub-label-2');
+
+            if (selectedGridOverlay === 1) {
+                feedbackText.innerText = '💡 ลองคลิกเลือกแผ่นตารางซอยส่วน เพื่อหาจำนวนช่องที่ทำให้ขอบย่อยตรงกันพอดี';
+                matchBadge.classList.add('hidden');
+                subLabel1.innerText = 'สถานะ: ยังไม่ได้ซอยตาราง';
+                subLabel2.innerText = 'สถานะ: ยังไม่ได้ซอยตาราง';
+                document.getElementById('combinedStatus').innerText = '⚠️ ขอบความยาวชิ้นส่วนยังไม่เท่ากัน';
+            } else {
+                const equiv1Num = (m.num1 * (selectedGridOverlay / m.den1));
+                const equiv2Num = (m.num2 * (selectedGridOverlay / m.den2));
+
+                if (isDen1Clean) {
+                    subLabel1.innerHTML = `<span class="text-amber-400 font-bold">✓ แปลงร่างเป็น ${equiv1Num}/${selectedGridOverlay}</span>`;
+                } else {
+                    subLabel1.innerHTML = `<span class="text-rose-400">❌ ซอยไม่พอดีกับส่วน ${m.den1}</span>`;
+                }
+
+                if (isDen2Clean) {
+                    subLabel2.innerHTML = `<span class="text-sky-400 font-bold">✓ แปลงร่างเป็น ${equiv2Num}/${selectedGridOverlay}</span>`;
+                } else {
+                    subLabel2.innerHTML = `<span class="text-rose-400">❌ ซอยไม่พอดีกับส่วน ${m.den2}</span>`;
+                }
+
+                if (isMatch) {
+                    playSound('match');
+                    feedbackText.innerText = `✨ ยอดเยี่ยม! ตาราง ${selectedGridOverlay} ช่อง สามารถซอยย่อยทั้งสองเศษส่วนได้ลงตัวพอดี (${equiv1Num}/${selectedGridOverlay} และ ${equiv2Num}/${selectedGridOverlay})`;
+                    matchBadge.classList.remove('hidden');
+                    document.getElementById('combinedStatus').innerText = `✅ ขอบเท่ากันแล้ว! (หน่วยละ 1/${selectedGridOverlay})`;
+                    unlockBadge('badge-1');
+                } else {
+                    feedbackText.innerText = `⚠️ ตาราง ${selectedGridOverlay} ช่องยังซอยย่อยชิ้นส่วนไม่ลงตัวทั้งสองฝั่ง ลองเลือกตารางอื่นครับ`;
+                    matchBadge.classList.add('hidden');
+                    document.getElementById('combinedStatus').innerText = '⚠️ ขอบความยาวชิ้นส่วนยังไม่เท่ากัน';
+                }
+            }
+        }
+
+        function renderGridLines(elementId, count) {
+            const overlay = document.getElementById(elementId);
+            overlay.innerHTML = '';
+            if (count <= 1) return;
+
+            for (let i = 1; i < count; i++) {
+                const line = document.createElement('div');
+                line.className = 'absolute top-0 bottom-0 border-r border-slate-100/40 pointer-events-none';
+                line.style.left = `${(i / count) * 100}%`;
+                overlay.appendChild(line);
+            }
+        }
+
+        function selectReasoning(choice) {
+            playSound('click');
+            selectedReasoningChoice = choice;
+
+            ['less_half', 'almost_one', 'more_one'].forEach(r => {
+                const b = document.getElementById(`reason-btn-${r}`);
+                if (r === choice) {
+                    b.className = 'p-2.5 rounded-lg bg-amber-500/20 border-2 border-amber-400 text-amber-300 font-bold transition text-left glow-gold';
+                } else {
+                    b.className = 'p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition text-left';
+                }
+            });
+        }
+
+        function submitScorecard() {
+            const m = currentMission;
+
+            const num1Input = parseInt(document.getElementById('sc-frac1-num').value);
+            const den1Input = parseInt(document.getElementById('sc-frac1-den').value);
+            const num2Input = parseInt(document.getElementById('sc-frac2-num').value);
+            const den2Input = parseInt(document.getElementById('sc-frac2-den').value);
+            const finalNumInput = parseInt(document.getElementById('sc-final-num').value);
+            const finalDenInput = parseInt(document.getElementById('sc-final-den').value);
+
+            // Validation Checks
+            if (isNaN(num1Input) || isNaN(den1Input) || isNaN(num2Input) || isNaN(den2Input) || isNaN(finalNumInput) || isNaN(finalDenInput)) {
+                playSound('error');
+                showToast('❌ กรอกข้อมูลไม่ครบ', 'โปรดระบุตัวเลขเศษส่วนในช่องให้ครบถ้วนก่อนส่งรายงาน', 'warning');
+                return;
+            }
+
+            // Verify equivalent fractions correctness
+            const isFrac1Valid = (num1Input / den1Input) === (m.num1 / m.den1) && (den1Input === den2Input);
+            const isFrac2Valid = (num2Input / den2Input) === (m.num2 / m.den2) && (den1Input === den2Input);
+
+            // Verify final numerical answer
+            const expectedVal = m.op === '+' 
+                ? (m.num1/m.den1 + m.num2/m.den2) 
+                : (m.num1/m.den1 - m.num2/m.den2);
+            const finalVal = finalNumInput / finalDenInput;
+            const isFinalValid = Math.abs(finalVal - expectedVal) < 0.0001;
+
+            // Verify Reasonableness Choice
+            const isReasoningValid = (selectedReasoningChoice === m.reasoning);
+
+            if (isFrac1Valid && isFrac2Valid && isFinalValid) {
+                playSound('win');
+                unlockBadge('badge-4');
+                if (isReasoningValid) unlockBadge('badge-3');
+                if (m.category === 'error') unlockBadge('badge-2');
+
+                showToast('🎉 ปิดคดีสำเร็จ!', `สมการถูกต้องสมบูรณ์! คุณได้รับคำตอบคือ ${finalNumInput}/${finalDenInput}`, 'success');
+            } else {
+                playSound('error');
+                showToast('🔍 คำตอบยังไม่แม่นยำ', 'สังเกตขนาดตารางส่วนเท่าอีกครั้ง หรือตรวจสอบการบวก/ลบตัวเศษ', 'error');
+            }
+        }
+
+        function unlockBadge(badgeId) {
+            unlockedBadges.add(badgeId);
+            const badgeEl = document.getElementById(badgeId);
+            if (badgeEl) {
+                badgeEl.classList.remove('opacity-40');
+                badgeEl.classList.add('border-amber-400', 'bg-amber-500/20', 'glow-gold');
+            }
+            document.getElementById('badgeCount').innerText = `${unlockedBadges.size}/4`;
+        }
+
+        function showToast(title, msg, type = 'success') {
+            const toast = document.getElementById('toastNotification');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastTitle.innerText = title;
+            toastMsg.innerText = msg;
+
+            if (type === 'success') {
+                toastIcon.innerText = '🏆';
+            } else if (type === 'error') {
+                toastIcon.innerText = '❌';
+            } else {
+                toastIcon.innerText = '⚠️';
+            }
+
+            toast.classList.remove('hidden', 'translate-y-4');
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'hidden');
+            }, 4000);
+        }
+
+        function toggleCustomCaseModal() {
+            playSound('click');
+            const modal = document.getElementById('customCaseModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function applyCustomCase() {
+            const num1 = parseInt(document.getElementById('cust-num1').value) || 1;
+            const den1 = parseInt(document.getElementById('cust-den1').value) || 2;
+            const num2 = parseInt(document.getElementById('cust-num2').value) || 1;
+            const den2 = parseInt(document.getElementById('cust-den2').value) || 3;
+            const op = document.getElementById('cust-op').value;
+
+            const customMission = {
+                id: 'CUST',
+                category: 'lvl1',
+                title: `คดีออกแบบเอง: ${num1}/${den1} ${op} ${num2}/${den2}`,
+                num1: num1, den1: den1,
+                num2: num2, den2: den2,
+                op: op,
+                targetNum: 0, targetDen: 0,
+                reasoning: 'almost_one'
+            };
+
+            loadMission(customMission);
+            toggleCustomCaseModal();
+            showToast('✏️ คดีใหม่สร้างสำเร็จ', 'เปิดบอร์ดปฏิบัติการสำหรับโจทย์ที่คุณกำหนดเองแล้ว', 'success');
+        }
+
+        function openAiAssistantModal() {
+            playSound('click');
+            document.getElementById('aiAssistantModal').classList.remove('hidden');
+        }
+
+        function closeAiAssistantModal() {
+            playSound('click');
+            document.getElementById('aiAssistantModal').classList.add('hidden');
+        }
+
+        async function sendAiPrompt() {
+            const inputEl = document.getElementById('aiInputPrompt');
+            const userText = inputEl.value.trim();
+            if (!userText) return;
+
+            const chatBox = document.getElementById('aiChatBox');
+
+            // Render User Message
+            const userMsgDiv = document.createElement('div');
+            userMsgDiv.className = 'bg-sky-950/80 p-3 rounded-xl border border-sky-800/80 text-sky-200 text-right';
+            userMsgDiv.innerHTML = `<span class="font-bold text-amber-400">🕵️‍♂️ นักสืบ:</span> ${escapeHtml(userText)}`;
+            chatBox.appendChild(userMsgDiv);
+
+            inputEl.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Loading Indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'bg-slate-900 p-3 rounded-xl border border-slate-800 text-slate-400 italic';
+            loadingDiv.id = 'aiLoadingIndicator';
+            loadingDiv.innerText = '🤖 Inspector Math กำลังวิเคราะห์และเรียบเรียงคำตอบ...';
+            chatBox.appendChild(loadingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                // System Instruction for Pedagogical Math Tutor
+                const systemPrompt = `คุณคือ "Inspector Math" ผู้ช่วยครูและนักสืบสอนคณิตศาสตร์ประถมศึกษาชั้นนำสำหรับเด็ก ป.5 
+เน้นการสอนเชิงมโนทัศน์ (Conceptual Math) ตามแนวคิด CPA Model (Concrete-Pictorial-Abstract) และ Error Analysis
+โจทย์ปัจจุบันคือ: ${currentMission.num1}/${currentMission.den1} ${currentMission.op} ${currentMission.num2}/${currentMission.den2}
+กฎสำคัญ:
+1. ห้ามบอกคำตอบตรงๆ ให้ใช้คำถามกระตุ้นคิดหรือคำใบ้เชิงภาพ (Visual Hints) เช่น แนะนำเรื่องการซอยแบ่งตารางส่วนเท่า
+2. ห้ามใช้คำท่องจำที่ไร้ความหมาย เช่น "คูณไขว้" 
+3. ตอบอย่างกระชับ สั้น สนุกสนาน เป็นกันเอง และให้กำลังใจนักเรียนในบทบาทนักสืบ`;
+
+                const apiKey = ""; // Built-in Gemini runtime key placeholder
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userText }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                const data = await response.json();
+                const aiReply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "ขออภัยครับนักสืบ สัญญาณขัดข้อง ลองถามใหม่อีกครั้งนะครับ!";
+
+                document.getElementById('aiLoadingIndicator')?.remove();
+
+                const aiMsgDiv = document.createElement('div');
+                aiMsgDiv.className = 'bg-slate-900 p-3 rounded-xl border border-slate-800 text-slate-200';
+                aiMsgDiv.innerHTML = `<span class="font-bold text-sky-400">🤖 Inspector Math:</span> ${escapeHtml(aiReply)}`;
+                chatBox.appendChild(aiMsgDiv);
+
+            } catch (err) {
+                console.error("AI Error:", err);
+                document.getElementById('aiLoadingIndicator')?.remove();
+
+                const errDiv = document.createElement('div');
+                errDiv.className = 'bg-slate-900 p-3 rounded-xl border border-rose-800 text-rose-300';
+                errDiv.innerHTML = `🤖 คำใบ้ด่วน: ลองใช้แผ่นตารางซอยส่วนขนาด ค.ร.น. ของ ${currentMission.den1} และ ${currentMission.den2} ดูสิครับ!`;
+                chatBox.appendChild(errDiv);
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
